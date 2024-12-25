@@ -1,14 +1,11 @@
-import django_filters
 from django.utils import timezone
-from django.shortcuts import render
-from .models import Author, Book
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
-from .serializers import AuthorSerializers, BookSerializers
-from rest_framework.exceptions import NotFound, PermissionDenied
 from django_filters.rest_framework import DjangoFilterBackend
-# from .filters import AuthorFilter
-from rest_framework.response import Response
+from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
 
+from .filters import BookFilter
+from .models import Author, Book
+from .serializers import AuthorSerializers, BookSerializers
 
 
 class AuthorListAPIView(ListAPIView):
@@ -20,16 +17,17 @@ class AuthorCreateAPIView(CreateAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializers
 
+
 class AuthorRetrieveAPIView(RetrieveAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializers
     lookup_field = 'id'
 
     def get_object(self):
-            try:
-                return super().get_object()
-            except Author.DoesNotExist:
-                raise NotFound("Автор не найден.")
+        try:
+            return super().get_object()
+        except Author.DoesNotExist:
+            raise NotFound("Автор не найден.")
 
 
 class AuthorUpdateAPIView(UpdateAPIView):
@@ -39,7 +37,6 @@ class AuthorUpdateAPIView(UpdateAPIView):
 
     def perform_update(self, serializer):
         serializer.save(updated_at=timezone.now())
-
 
 
 class AuthorDestroyAPIView(DestroyAPIView):
@@ -53,12 +50,11 @@ class AuthorDestroyAPIView(DestroyAPIView):
         instance.delete()
 
 
-
-
-
 class BookListAPIView(ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializers
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = BookFilter
 
 
 class BookFilterAPIView(ListAPIView):
@@ -67,9 +63,11 @@ class BookFilterAPIView(ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['author']
 
+
 class BookCreateAPIView(CreateAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializers
+
 
 class BookRetrieveAPIView(RetrieveAPIView):
     queryset = Book.objects.all()
@@ -90,6 +88,7 @@ class BookUpdateAPIView(UpdateAPIView):
 
     def perform_update(self, serializer):
         serializer.save(updated_at=timezone.now())
+
 
 class BookDestroyAPIView(DestroyAPIView):
     queryset = Book.objects.all()
